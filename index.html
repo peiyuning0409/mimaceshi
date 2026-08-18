@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>密码强度测试器 · 100% 本地隐私安全</title>
+<meta name="description" content="完全本地运行的密码强度测试工具：不联网、不记录、不上传，所有计算都在你的浏览器内完成。基于 NIST SP 800-63B Rev.4 与 2025 年最新 GPU 破解基准。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="brand">
+      <div class="brand-icon">🔐</div>
+      <div>
+        <h1>密码强度测试器</h1>
+        <p class="subtitle">Password Strength Analyzer · 100% 本地运行 · 零数据离开你的设备</p>
+      </div>
+    </div>
+    <div class="privacy-badge" id="privacyBadge">
+      <span class="dot"></span>
+      <span>隐私保护模式：已启用</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- 输入区 -->
+  <section class="card input-card" aria-label="密码输入">
+    <div class="input-wrap">
+      <input type="password" id="passwordInput" class="password-input" placeholder="在此输入或粘贴你想测试的密码…" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="512">
+      <button type="button" id="toggleBtn" class="toggle-btn" title="显示 / 隐藏密码" aria-label="显示或隐藏密码">👁</button>
+      <button type="button" id="clearBtn" class="clear-btn" title="清空" aria-label="清空输入">✕</button>
+    </div>
+    <div class="input-meta">
+      <span id="charCount">0 个字符</span>
+      <span id="charSetInfo">—</span>
+    </div>
+
+    <!-- 强度条 -->
+    <div class="meter-wrap">
+      <div class="meter-track">
+        <div class="meter-fill" id="meterFill" style="width:0%"></div>
+      </div>
+      <div class="meter-labels">
+        <span>极弱</span><span>弱</span><span>中等</span><span>强</span><span>极强</span>
+      </div>
+    </div>
+
+    <div class="score-row">
+      <div class="score-badge" id="scoreBadge">
+        <span class="score-num" id="scoreNum">—</span>
+        <span class="score-label" id="scoreLabel">等待输入</span>
+      </div>
+      <div class="entropy-box">
+        <div class="entropy-num" id="entropyNum">0</div>
+        <div class="entropy-label">估算熵值（bits）</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 破解时间 -->
+  <section class="card" id="crackSection" style="display:none" aria-label="破解时间估算">
+    <h2 class="card-title">⏱ 若被攻击，破解需要多久？</h2>
+    <p class="card-desc">以下时间基于 <strong>2025 年最新实测硬件基准</strong>（NVIDIA RTX 4090，hashcat 7.0.0 实测数据）与行业公认攻击模型估算，仅供参考。</p>
+
+    <div class="attack-tabs" role="tablist">
+      <button class="tab-btn active" data-attack="offline" role="tab">离线攻击（哈希泄露）</button>
+      <button class="tab-btn" data-attack="online" role="tab">在线攻击（网站登录）</button>
+    </div>
+
+    <div class="crack-table-wrap">
+      <table class="crack-table" id="crackTable">
+        <thead>
+          <tr>
+            <th>攻击场景</th>
+            <th>每秒尝试次数</th>
+            <th>暴力破解全部空间</th>
+            <th>破解概率评估</th>
+          </tr>
+        </thead>
+        <tbody id="crackTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="crack-note" id="crackNote"></div>
+  </section>
+
+  <!-- 详细分析 -->
+  <section class="card" id="analysisSection" style="display:none" aria-label="详细分析">
+    <h2 class="card-title">🔍 详细分析</h2>
+    <div id="analysisList" class="analysis-list"></div>
+  </section>
+
+  <!-- 建议 -->
+  <section class="card" id="suggestSection" style="display:none" aria-label="改进建议">
+    <h2 class="card-title">💡 改进建议</h2>
+    <div id="suggestList" class="suggest-list"></div>
+  </section>
+
+  <!-- 密码生成器 -->
+  <section class="card" aria-label="密码生成器">
+    <h2 class="card-title">🎲 强密码生成器</h2>
+    <p class="card-desc">使用浏览器内置的加密安全随机数（crypto.getRandomValues）生成真正随机的强密码，同样完全在本地完成。</p>
+    <div class="gen-controls">
+      <label class="gen-opt"><input type="checkbox" id="genUpper" checked> 大写字母</label>
+      <label class="gen-opt"><input type="checkbox" id="genLower" checked> 小写字母</label>
+      <label class="gen-opt"><input type="checkbox" id="genDigit" checked> 数字</label>
+      <label class="gen-opt"><input type="checkbox" id="genSymbol" checked> 符号</label>
+      <label class="gen-opt">长度 <input type="number" id="genLength" value="20" min="8" max="128" class="num-input"></label>
+      <button type="button" id="genBtn" class="btn-primary">生成密码</button>
+    </div>
+    <div class="gen-result" id="genResult" style="display:none">
+      <code id="genPassword"></code>
+      <button type="button" id="copyGenBtn" class="btn-secondary">复制</button>
+    </div>
+  </section>
+
+  <!-- 隐私说明 -->
+  <section class="card privacy-card" aria-label="隐私说明">
+    <h2 class="card-title">🛡 隐私与安全承诺</h2>
+    <ul class="privacy-list">
+      <li><strong>零网络请求：</strong>本页面不包含任何外部脚本、字体、图片或 API 调用，所有代码均内置于本仓库。</li>
+      <li><strong>零数据记录：</strong>不写入 localStorage、不设置 Cookie、不使用 IndexedDB，刷新或关闭页面后不留任何痕迹。</li>
+      <li><strong>零上传：</strong>你输入的密码永远不会离开你的浏览器，也不会发送到任何服务器。</li>
+      <li><strong>纯本地计算：</strong>所有强度分析、熵计算、破解时间估算均在浏览器内存中完成。</li>
+      <li><strong>无统计追踪：</strong>不接入任何分析工具（无 Google Analytics、无统计脚本）。</li>
+      <li><strong>可审计：</strong>本项目为开源代码，你可以在 GitHub 上查看全部源码，确认没有任何隐藏的数据收集行为。</li>
+    </ul>
+    <p class="privacy-tip">💬 建议：部署后请使用浏览器「无痕 / 隐私模式」访问，进一步杜绝任何本地痕迹。</p>
+  </section>
+
+  <!-- 评估标准说明 -->
+  <section class="card" aria-label="评估标准">
+    <h2 class="card-title">📐 评估标准与数据来源</h2>
+    <div class="std-content">
+      <h3>1. 熵值计算（Shannon 熵）</h3>
+      <p>熵值 = 密码长度 × log₂(实际使用的字符集大小)。字符集按密码中真实出现的字符类型计算：小写字母 26、大写字母 26、数字 10、常用符号 33、其他符号 94、Unicode 按实际估算。熵值越高，暴力破解所需尝试次数越多。</p>
+      <h3>2. 破解时间模型</h3>
+      <p>破解时间 = 全部组合数 ÷ 每秒尝试次数 ÷ 2（平均只需尝试一半空间）。每秒尝试次数采用 <strong>NVIDIA RTX 4090 单卡实测基准</strong>（hashcat 7.0.0，2025 年 8 月社区实测）：</p>
+      <table class="std-table">
+        <tr><th>哈希算法</th><th>RTX 4090 实测速度</th><th>说明</th></tr>
+        <tr><td>MD5</td><td>≈ 1634 亿次/秒</td><td>旧系统、部分遗留应用</td></tr>
+        <tr><td>NTLM</td><td>≈ 2719 亿次/秒</td><td>Windows 本地账户</td></tr>
+        <tr><td>SHA-1</td><td>≈ 586 亿次/秒</td><td>旧版 Git、遗留系统</td></tr>
+        <tr><td>SHA-256</td><td>≈ 221 亿次/秒</td><td>现代 API、Token</td></tr>
+        <tr><td>SHA-512</td><td>≈ 75 亿次/秒</td><td>部分 Linux 系统</td></tr>
+        <tr><td>WPA2 (PBKDF2)</td><td>≈ 266 万次/秒</td><td>Wi-Fi 密码</td></tr>
+        <tr><td>bcrypt (cost 12)</td><td>≈ 3200 次/秒</td><td>现代 Web 应用</td></tr>
+        <tr><td>Argon2id</td><td>≈ 1900 次/秒</td><td>OWASP 推荐的最强算法</td></tr>
+      </table>
+      <p class="std-note">注：新一代 RTX 5090 比 4090 快约 36%–47%；国家级攻击者可动用数百张 GPU 集群，速度再提升 2–3 个数量级。本工具同时提供「单卡 / 高端集群 / 国家级」三档估算。</p>
+      <h3>3. 规则依据</h3>
+      <ul>
+        <li><strong>NIST SP 800-63B Rev.4</strong>（2025 年 7 月 31 日定稿）：单因素密码最低 15 字符；禁止强制复杂性规则；禁止定期强制更换；必须用黑名单筛查已知弱密码与泄露密码。</li>
+        <li><strong>OWASP 2025</strong>：密码存储推荐 Argon2id；bcrypt 工作因子 ≥ 10；PBKDF2-SHA256 至少 60 万次迭代。</li>
+        <li><strong>Hive Systems 2025 密码威胁表</strong>：8 位全随机密码在高端 GPU 集群下约 48 分钟可破。</li>
+        <li><strong>Kaspersky 2025 研究</strong>：193M 泄露密码中 45% 可在 1 分钟内被破解。</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>密码强度测试器 · 纯前端开源项目 · 仅供个人安全评估使用</p>
+    <p class="footer-note">⚠️ 请勿在任何非本人控制的设备或网络环境中输入真实密码。本工具不存储、不传输任何数据。</p>
+  </div>
+</footer>
+
+<script src="js/common-passwords.js"></script>
+<script src="js/analyzer.js"></script>
+<script src="js/cracktime.js"></script>
+<script src="js/suggestions.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+/* ============================================================
+   密码强度测试器 · 样式表
+   设计风格：深色专业安全工具风，清晰可读，响应式
+   ============================================================ */
+
+:root {
+  --bg: #0f1420;
+  --bg-soft: #161d2e;
+  --card: #1a2233;
+  --card-border: #2a3550;
+  --text: #e8edf7;
+  --text-dim: #9aa7c0;
+  --accent: #4f8cff;
+  --accent-soft: rgba(79, 140, 255, 0.12);
+  --green: #2ecc71;
+  --yellow: #f1c40f;
+  --orange: #e67e22;
+  --red: #e74c3c;
+  --purple: #9b59b6;
+  --radius: 14px;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(79, 140, 255, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(46, 204, 113, 0.05), transparent);
+}
+
+.container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+/* ---------- 头部 ---------- */
+.site-header {
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--card-border);
+  background: rgba(15, 20, 32, 0.8);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-icon {
+  font-size: 34px;
+  width: 58px; height: 58px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 14px;
+}
+.brand h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+.subtitle { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+
+.privacy-badge {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(46, 204, 113, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  color: var(--green);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.privacy-badge .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(46, 204, 113, 0); }
+}
+
+/* ---------- 卡片 ---------- */
+main { padding: 24px 0 40px; display: flex; flex-direction: column; gap: 20px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+.card-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.card-desc { font-size: 14px; color: var(--text-dim); margin-bottom: 16px; }
+
+/* ---------- 输入区 ---------- */
+.input-wrap { position: relative; display: flex; align-items: center; }
+.password-input {
+  width: 100%;
+  padding: 16px 110px 16px 18px;
+  font-size: 18px;
+  font-family: "Consolas", "Courier New", monospace;
+  background: var(--bg-soft);
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+  letter-spacing: 1px;
+}
+.password-input:focus { border-color: var(--accent); }
+.password-input::placeholder { color: #5a6a8a; letter-spacing: 0; font-family: inherit; }
+
+.toggle-btn, .clear-btn {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+.toggle-btn:hover, .clear-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+.toggle-btn { right: 52px; }
+.clear-btn { right: 12px; }
+
+.input-meta {
+  display: flex; justify-content: space-between;
+  font-size: 13px; color: var(--text-dim);
+  margin-top: 10px;
+}
+
+/* ---------- 强度条 ---------- */
+.meter-wrap { margin-top: 18px; }
+.meter-track {
+  height: 14px;
+  background: var(--bg-soft);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+}
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  transition: width 0.4s ease, background 0.4s ease;
+  background: var(--red);
+}
+.meter-labels {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text-dim);
+  margin-top: 6px;
+}
+
+/* ---------- 分数区 ---------- */
+.score-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 20px; gap: 16px; flex-wrap: wrap;
+}
+.score-badge {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: var(--bg-soft);
+  border: 1px solid var(--card-border);
+}
+.score-num { font-size: 40px; font-weight: 800; line-height: 1; }
+.score-label { font-size: 15px; font-weight: 600; color: var(--text-dim); }
+.entropy-box { text-align: right; }
+.entropy-num { font-size: 34px; font-weight: 800; color: var(--accent); line-height: 1.1; }
+.entropy-label { font-size: 12px; color: var(--text-dim); }
+
+/* 强度配色 */
+.strength-0 .meter-fill { background: var(--red); }
+.strength-1 .meter-fill { background: var(--orange); }
+.strength-2 .meter-fill { background: var(--yellow); }
+.strength-3 .meter-fill { background: #2ecc71; }
+.strength-4 .meter-fill { background: var(--green); }
+.strength-5 .meter-fill { background: var(--purple); }
+
+/* ---------- 破解时间 ---------- */
+.attack-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab-btn {
+  padding: 8px 18px;
+  background: var(--bg-soft);
+  border: 1px solid var(--card-border);
+  color: var(--text-dim);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.crack-table-wrap { overflow-x: auto; }
+.crack-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.crack-table th, .crack-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--card-border);
+}
+.crack-table th {
+  color: var(--text-dim);
+  font-weight: 600;
+  font-size: 13px;
+  background: var(--bg-soft);
+}
+.crack-table td:first-child { font-weight: 600; }
+.crack-table tr:last-child td { border-bottom: none; }
+.crack-table .time-cell { font-family: "Consolas", monospace; font-weight: 700; }
+.time-danger { color: var(--red); }
+.time-warn { color: var(--orange); }
+.time-ok { color: var(--green); }
+.time-great { color: var(--purple); }
+
+.crack-note {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* ---------- 分析列表 ---------- */
+.analysis-list { display: flex; flex-direction: column; gap: 10px; }
+.analysis-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-soft);
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  font-size: 14px;
+}
+.analysis-item .icon { font-size: 18px; flex-shrink: 0; }
+.analysis-item .text { flex: 1; }
+.analysis-item .tag {
+  flex-shrink: 0;
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.tag-good { background: rgba(46,204,113,0.15); color: var(--green); }
+.tag-warn { background: rgba(241,196,15,0.15); color: var(--yellow); }
+.tag-bad { background: rgba(231,76,60,0.15); color: var(--red); }
+
+/* ---------- 建议列表 ---------- */
+.suggest-list { display: flex; flex-direction: column; gap: 10px; }
+.suggest-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-soft);
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  font-size: 14px;
+}
+.suggest-item .icon { font-size: 18px; flex-shrink: 0; }
+.suggest-item .text { flex: 1; }
+.suggest-item .text strong { color: var(--accent); }
+
+/* ---------- 生成器 ---------- */
+.gen-controls {
+  display: flex; align-items: center; gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.gen-opt { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+.gen-opt input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
+.num-input {
+  width: 70px;
+  padding: 6px 8px;
+  background: var(--bg-soft);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+}
+.btn-primary {
+  padding: 9px 22px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-secondary {
+  padding: 8px 18px;
+  background: var(--bg-soft);
+  color: var(--text);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+.gen-result {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-soft);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+}
+.gen-result code {
+  flex: 1;
+  font-family: "Consolas", monospace;
+  font-size: 16px;
+  word-break: break-all;
+  color: var(--accent);
+}
+
+/* ---------- 隐私卡片 ---------- */
+.privacy-card { border-color: rgba(46, 204, 113, 0.35); }
+.privacy-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.privacy-list li {
+  padding-left: 24px;
+  position: relative;
+  font-size: 14px;
+}
+.privacy-list li::before {
+  content: "✓";
+  position: absolute; left: 0;
+  color: var(--green);
+  font-weight: 700;
+}
+.privacy-tip {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: rgba(241,196,15,0.08);
+  border-left: 3px solid var(--yellow);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* ---------- 标准说明 ---------- */
+.std-content h3 { font-size: 15px; margin: 14px 0 6px; color: var(--accent); }
+.std-content p, .std-content li { font-size: 14px; color: var(--text-dim); }
+.std-content ul { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.std-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+.std-table th, .std-table td {
+  padding: 8px 10px;
+  border: 1px solid var(--card-border);
+  text-align: left;
+}
+.std-table th { background: var(--bg-soft); color: var(--text-dim); }
+.std-note { font-size: 12px !important; color: #6b7a99 !important; margin-top: 6px; }
+
+/* ---------- 页脚 ---------- */
+.site-footer {
+  border-top: 1px solid var(--card-border);
+  padding: 24px 0 40px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+.footer-note { margin-top: 6px; font-size: 12px; color: #6b7a99; }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 640px) {
+  .brand h1 { font-size: 18px; }
+  .brand-icon { width: 46px; height: 46px; font-size: 26px; }
+  .score-row { flex-direction: column; align-items: flex-start; }
+  .entropy-box { text-align: left; }
+  .password-input { font-size: 15px; padding-right: 96px; }
+  .card { padding: 18px; }
+}
