@@ -43,7 +43,7 @@
     </div>
     <div class="auth-area">
       <div class="user-chip" id="userChip" style="display:none">👤 <span id="curUserName"></span> <span class="logout" onclick="logout()">退出</span></div>
-      <button class="auth-btn" id="authOpenBtn" onclick="openAuth()">登录 / 注册</button>
+      <button class="auth-btn" id="authOpenBtn" onclick="openAuthSafe()">登录 / 注册</button>
     </div>
   </div>
 </header>
@@ -215,6 +215,11 @@ let curUser = null;
 const AUTH_KEY = 'mima_user';
 
 function openAuth(){ document.getElementById('authModal').style.display='flex'; }
+/* 兜底：脚本未完全加载时点击登录按钮，等待后自动打开，避免偶发报错 */
+function openAuthSafe(){
+  if(typeof openAuth==='function'){ openAuth(); }
+  else{ setTimeout(openAuthSafe, 100); }
+}
 function closeAuth(){ document.getElementById('authModal').style.display='none'; document.getElementById('authMsg').textContent=''; }
 function toggleAuth(){
   isRegister=!isRegister;
