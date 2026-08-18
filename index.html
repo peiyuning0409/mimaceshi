@@ -24,6 +24,11 @@
 .auth-do{width:100%;padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;background:linear-gradient(90deg,#ffd700,#ff8c00);color:#1a1a2e}
 .auth-switch{text-align:center;margin-top:14px;color:#bbb;font-size:13px;cursor:pointer}
 .auth-switch span{color:#ffd700}
+.app-lock{position:fixed;inset:0;background:rgba(10,10,25,.85);backdrop-filter:blur(3px);z-index:900;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;cursor:pointer;padding:20px;box-sizing:border-box}
+.app-lock .lock-ico{font-size:44px;margin-bottom:14px}
+.app-lock .lock-t1{font-size:22px;color:#ffd700;margin-bottom:8px;font-weight:bold}
+.app-lock .lock-t2{font-size:14px;color:#bbb;line-height:1.9}
+.app-lock .lock-btn{margin-top:18px;padding:10px 26px;border-radius:24px;border:none;background:linear-gradient(90deg,#ffd700,#ff8c00);color:#1a1a2e;font-size:15px;font-weight:bold;cursor:pointer}
 </style>
 </head>
 <body>
@@ -184,13 +189,21 @@
   <div class="auth-box">
     <button class="auth-x" onclick="closeAuth()" title="关闭">✕</button>
     <h2 id="authTitle">🔐 登录</h2>
-    <p class="auth-sub" id="authSub">登录后使用密码测试器（测试内容仍完全本地）</p>
+    <p class="auth-sub" id="authSub">请先注册并登录，才能使用密码测试器</p>
     <input id="authUser" placeholder="用户名（2-20 位）" autocomplete="off">
     <input id="authPass" type="password" placeholder="密码（至少 4 位）">
     <div class="auth-msg" id="authMsg"></div>
     <button class="auth-do" id="authDoBtn" onclick="doAuth()">登 录</button>
     <div class="auth-switch" onclick="toggleAuth()"><span id="authSwitchText">没有账号？立即注册</span></div>
   </div>
+</div>
+
+<!-- 未登录锁定遮罩 -->
+<div class="app-lock" id="appLock" onclick="openAuthSafe()">
+  <div class="lock-ico">🔒</div>
+  <div class="lock-t1">请先注册并登录</div>
+  <div class="lock-t2">登录后才能使用密码强度测试与强密码生成功能。<br>账号信息加密存储，测试内容仍完全在本地完成。</div>
+  <button class="lock-btn" onclick="event.stopPropagation();openAuthSafe()">立即登录 / 注册</button>
 </div>
 
 
@@ -214,17 +227,41 @@ let isRegister = false;
 let curUser = null;
 const AUTH_KEY = 'mima_user';
 
-function openAuth(){ document.getElementById('authModal').style.display='flex'; }
+function openAuth(){
+  document.getElementById('authModal').style.display='flex';
+  document.getElementById('authMsg').textContent='';
+}
 /* 兜底：脚本未完全加载时点击登录按钮，等待后自动打开，避免偶发报错 */
 function openAuthSafe(){
   if(typeof openAuth==='function'){ openAuth(); }
   else{ setTimeout(openAuthSafe, 100); }
 }
-function closeAuth(){ document.getElementById('authModal').style.display='none'; document.getElementById('authMsg').textContent=''; }
+function closeAuth(){
+  if(curUser){ document.getElementById('authModal').style.display='none'; document.getElementById('authMsg').textContent=''; }
+  else{ document.getElementById('authMsg').textContent='请先注册并登录后，才能使用本工具'; }
+}
+/* 未登录锁定：禁用测试器全部交互 */
+var APP_LOCK_IDS=['passwordInput','toggleBtn','clearBtn','genUpper','genLower','genDigit','genSymbol','genLength','genBtn','copyGenBtn'];
+function lockApp(){
+  var m=document.getElementById('appLock');
+  if(m) m.style.display='flex';
+  APP_LOCK_IDS.forEach(function(id){ var el=document.getElementById(id); if(el) el.disabled=true; });
+  var tabs=document.querySelectorAll('.tab-btn');
+  for(var i=0;i<tabs.length;i++) tabs[i].disabled=true;
+  document.getElementById('authOpenBtn').style.display='inline-block';
+  document.getElementById('userChip').style.display='none';
+}
+function unlockApp(){
+  var m=document.getElementById('appLock');
+  if(m) m.style.display='none';
+  APP_LOCK_IDS.forEach(function(id){ var el=document.getElementById(id); if(el) el.disabled=false; });
+  var tabs=document.querySelectorAll('.tab-btn');
+  for(var i=0;i<tabs.length;i++) tabs[i].disabled=false;
+}
 function toggleAuth(){
   isRegister=!isRegister;
   document.getElementById('authTitle').textContent = isRegister?'📝 注册':'🔐 登录';
-  document.getElementById('authSub').textContent = isRegister?'创建账号后自动登录':'登录后使用密码测试器（测试内容仍完全本地）';
+  document.getElementById('authSub').textContent = isRegister?'创建账号后自动登录，并解锁全部功能':'请先登录，才能使用密码测试器';
   document.getElementById('authDoBtn').textContent = isRegister?'注 册':'登 录';
   document.getElementById('authSwitchText').textContent = isRegister?'已有账号？去登录':'没有账号？立即注册';
   document.getElementById('authMsg').textContent='';
@@ -267,6 +304,7 @@ function afterLogin(){
   document.getElementById('curUserName').textContent=curUser.username;
   const b=document.getElementById('privacyBadge');
   if(b) b.innerHTML='<span class="dot"></span><span>已登录：'+curUser.username+'</span>';
+  unlockApp();
 }
 function logout(){ localStorage.removeItem(AUTH_KEY); location.reload(); }
 (function initAuth(){
@@ -276,8 +314,10 @@ function logout(){ localStorage.removeItem(AUTH_KEY); location.reload(); }
       const users=d?d.content.users:[];
       const u=users.find(x=>x.username===saved);
       if(u){curUser=u;afterLogin();}
-      else localStorage.removeItem(AUTH_KEY);
-    }).catch(()=>{});
+      else{ localStorage.removeItem(AUTH_KEY); lockApp(); openAuth(); }
+    }).catch(()=>{ lockApp(); openAuth(); });
+  }else{
+    lockApp(); openAuth();
   }
 })();
 </script>
