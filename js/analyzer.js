@@ -34,7 +34,7 @@ function analyzePassword(pwd) {
   return { len, pool, has, entropy };
 }
 
-// 强度评分 0-5（基于熵值与 NIST SP 800-63B 思路）
+// 强度评分 0-5（基于熵值与密码学强度思路）
 // 0=极弱 1=很弱 2=弱 3=中等 4=强 5=极强
 function scorePassword(pwd, analysis) {
   if (!pwd) return 0;

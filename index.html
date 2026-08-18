@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>密码强度测试器 · 100% 本地隐私安全</title>
-<meta name="description" content="完全本地运行的密码强度测试工具：不联网、不记录、不上传，所有计算都在你的浏览器内完成。基于 NIST SP 800-63B Rev.4 与 2025 年最新 GPU 破解基准。">
+<meta name="description" content="完全本地运行的密码强度测试工具：不联网、不记录、不上传，所有计算都在你的浏览器内完成，采用 2025 年最新 GPU 破解基准评估。">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -135,7 +135,7 @@
 
   <!-- 评估标准说明 -->
   <section class="card" aria-label="评估标准">
-    <h2 class="card-title">📐 评估标准与数据来源</h2>
+    <h2 class="card-title">📐 评估说明</h2>
     <div class="std-content">
       <h3>1. 熵值计算（Shannon 熵）</h3>
       <p>熵值 = 密码长度 × log₂(实际使用的字符集大小)。字符集按密码中真实出现的字符类型计算：小写字母 26、大写字母 26、数字 10、常用符号 33、其他符号 94、Unicode 按实际估算。熵值越高，暴力破解所需尝试次数越多。</p>
@@ -150,16 +150,9 @@
         <tr><td>SHA-512</td><td>≈ 75 亿次/秒</td><td>部分 Linux 系统</td></tr>
         <tr><td>WPA2 (PBKDF2)</td><td>≈ 266 万次/秒</td><td>Wi-Fi 密码</td></tr>
         <tr><td>bcrypt (cost 12)</td><td>≈ 3200 次/秒</td><td>现代 Web 应用</td></tr>
-        <tr><td>Argon2id</td><td>≈ 1900 次/秒</td><td>OWASP 推荐的最强算法</td></tr>
+        <tr><td>Argon2id</td><td>≈ 1900 次/秒</td><td>现代密码哈希算法（内存硬型）</td></tr>
       </table>
       <p class="std-note">注：新一代 RTX 5090 比 4090 快约 36%–47%；国家级攻击者可动用数百张 GPU 集群，速度再提升 2–3 个数量级。本工具同时提供「单卡 / 高端集群 / 国家级」三档估算。</p>
-      <h3>3. 规则依据</h3>
-      <ul>
-        <li><strong>NIST SP 800-63B Rev.4</strong>（2025 年 7 月 31 日定稿）：单因素密码最低 15 字符；禁止强制复杂性规则；禁止定期强制更换；必须用黑名单筛查已知弱密码与泄露密码。</li>
-        <li><strong>OWASP 2025</strong>：密码存储推荐 Argon2id；bcrypt 工作因子 ≥ 10；PBKDF2-SHA256 至少 60 万次迭代。</li>
-        <li><strong>Hive Systems 2025 密码威胁表</strong>：8 位全随机密码在高端 GPU 集群下约 48 分钟可破。</li>
-        <li><strong>Kaspersky 2025 研究</strong>：193M 泄露密码中 45% 可在 1 分钟内被破解。</li>
-      </ul>
     </div>
   </section>
 
