@@ -7,6 +7,24 @@
 <title>密码强度测试器 · 100% 本地隐私安全</title>
 <meta name="description" content="完全本地运行的密码强度测试工具：不联网、不记录、不上传，所有计算都在你的浏览器内完成，采用 2025 年最新 GPU 破解基准评估。">
 <link rel="stylesheet" href="css/style.css">
+<style>
+.auth-area{margin-left:12px;display:flex;align-items:center;gap:10px}
+.auth-btn{padding:8px 18px;border-radius:20px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;font-size:13px;cursor:pointer;transition:.2s}
+.auth-btn:hover{background:rgba(255,215,0,.2);border-color:#ffd700}
+.user-chip{display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:20px;background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);color:#ffd700;font-size:13px}
+.user-chip .logout{color:#ff6b6b;cursor:pointer;font-size:12px}
+.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center}
+.auth-box{width:360px;max-width:92vw;background:linear-gradient(135deg,#1a1a2e,#302b63);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:34px 30px;position:relative;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.5);box-sizing:border-box}
+.auth-x{position:absolute;top:12px;right:14px;background:none;border:none;color:#aaa;font-size:18px;cursor:pointer}
+.auth-box h2{margin:0 0 6px;text-align:center;color:#ffd700}
+.auth-sub{text-align:center;color:#999;font-size:12px;margin:0 0 20px}
+.auth-box input{width:100%;padding:12px 14px;margin-bottom:12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.3);color:#fff;font-size:14px;outline:none;box-sizing:border-box}
+.auth-box input:focus{border-color:#ffd700}
+.auth-msg{text-align:center;color:#ff6b6b;font-size:13px;min-height:18px;margin-bottom:4px}
+.auth-do{width:100%;padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;background:linear-gradient(90deg,#ffd700,#ff8c00);color:#1a1a2e}
+.auth-switch{text-align:center;margin-top:14px;color:#bbb;font-size:13px;cursor:pointer}
+.auth-switch span{color:#ffd700}
+</style>
 </head>
 <body>
 
@@ -22,6 +40,10 @@
     <div class="privacy-badge" id="privacyBadge">
       <span class="dot"></span>
       <span>隐私保护模式：已启用</span>
+    </div>
+    <div class="auth-area">
+      <div class="user-chip" id="userChip" style="display:none">👤 <span id="curUserName"></span> <span class="logout" onclick="logout()">退出</span></div>
+      <button class="auth-btn" id="authOpenBtn" onclick="openAuth()">登录 / 注册</button>
     </div>
   </div>
 </header>
@@ -123,11 +145,10 @@
   <section class="card privacy-card" aria-label="隐私说明">
     <h2 class="card-title">🛡 隐私与安全承诺</h2>
     <ul class="privacy-list">
-      <li><strong>零网络请求：</strong>本页面不包含任何外部脚本、字体、图片或 API 调用，所有代码均内置于本仓库。</li>
-      <li><strong>零数据记录：</strong>不写入 localStorage、不设置 Cookie、不使用 IndexedDB，刷新或关闭页面后不留任何痕迹。</li>
-      <li><strong>零上传：</strong>你输入的密码永远不会离开你的浏览器，也不会发送到任何服务器。</li>
+      <li><strong>密码测试零上传：</strong>你输入的待测密码只在浏览器内存中分析，永不离开你的设备，也不会发送到任何服务器。</li>
+      <li><strong>账号加密存储：</strong>仅注册/登录的账号信息（用户名、密码、注册时间）经 AES-256 加密后才写入仓库，仓库内仅存密文，无法直接读取。</li>
       <li><strong>纯本地计算：</strong>所有强度分析、熵计算、破解时间估算均在浏览器内存中完成。</li>
-      <li><strong>无统计追踪：</strong>不接入任何分析工具（无 Google Analytics、无统计脚本）。</li>
+      <li><strong>无统计追踪：</strong>不接入任何第三方分析工具（无 Google Analytics、无统计脚本）。</li>
       <li><strong>可审计：</strong>本项目为开源代码，你可以在 GitHub 上查看全部源码，确认没有任何隐藏的数据收集行为。</li>
     </ul>
     <p class="privacy-tip">💬 建议：部署后请使用浏览器「无痕 / 隐私模式」访问，进一步杜绝任何本地痕迹。</p>
@@ -158,6 +179,21 @@
 
 </main>
 
+<!-- 登录/注册弹窗 -->
+<div class="auth-modal" id="authModal" style="display:none">
+  <div class="auth-box">
+    <button class="auth-x" onclick="closeAuth()" title="关闭">✕</button>
+    <h2 id="authTitle">🔐 登录</h2>
+    <p class="auth-sub" id="authSub">登录后使用密码测试器（测试内容仍完全本地）</p>
+    <input id="authUser" placeholder="用户名（2-20 位）" autocomplete="off">
+    <input id="authPass" type="password" placeholder="密码（至少 4 位）">
+    <div class="auth-msg" id="authMsg"></div>
+    <button class="auth-do" id="authDoBtn" onclick="doAuth()">登 录</button>
+    <div class="auth-switch" onclick="toggleAuth()"><span id="authSwitchText">没有账号？立即注册</span></div>
+  </div>
+</div>
+
+
 <footer class="site-footer">
   <div class="container">
     <p>密码强度测试器 · 纯前端开源项目 · 仅供个人安全评估使用</p>
@@ -165,10 +201,81 @@
   </div>
 </footer>
 
+<script src="assets/api.js"></script>
 <script src="js/common-passwords.js"></script>
 <script src="js/analyzer.js"></script>
 <script src="js/cracktime.js"></script>
 <script src="js/suggestions.js"></script>
 <script src="js/app.js"></script>
+
+<script>
+/* ===== 登录 / 注册（账号加密存储，测试功能仍完全本地） ===== */
+let isRegister = false;
+let curUser = null;
+const AUTH_KEY = 'mima_user';
+
+function openAuth(){ document.getElementById('authModal').style.display='flex'; }
+function closeAuth(){ document.getElementById('authModal').style.display='none'; document.getElementById('authMsg').textContent=''; }
+function toggleAuth(){
+  isRegister=!isRegister;
+  document.getElementById('authTitle').textContent = isRegister?'📝 注册':'🔐 登录';
+  document.getElementById('authSub').textContent = isRegister?'创建账号后自动登录':'登录后使用密码测试器（测试内容仍完全本地）';
+  document.getElementById('authDoBtn').textContent = isRegister?'注 册':'登 录';
+  document.getElementById('authSwitchText').textContent = isRegister?'已有账号？去登录':'没有账号？立即注册';
+  document.getElementById('authMsg').textContent='';
+}
+async function doAuth(){
+  const u=document.getElementById('authUser').value.trim();
+  const p=document.getElementById('authPass').value;
+  const msg=document.getElementById('authMsg');
+  if(!u||!p){msg.textContent='请输入用户名和密码';return;}
+  if(u.length<2||u.length>20){msg.textContent='用户名需 2-20 个字符';return;}
+  if(p.length<4){msg.textContent='密码至少 4 位';return;}
+  msg.textContent='处理中...';
+  try{
+    const data=await MIMA.readFile('data/users.json');
+    const users=data?data.content.users:[];
+    const exist=users.find(x=>x.username===u);
+    if(isRegister){
+      if(exist){msg.textContent='该用户名已被注册';return;}
+      const nu={username:u,password:p,regTime:new Date().toLocaleString('zh-CN'),site:'mimaceshi'};
+      users.push(nu);
+      await MIMA.writeFile('data/users.json',{users},data?data.sha:undefined);
+      curUser=nu;
+      afterLogin();
+    }else{
+      if(!exist){msg.textContent='用户不存在，请先注册';return;}
+      if(exist.password!==p){msg.textContent='密码错误';return;}
+      curUser=exist;
+      afterLogin();
+    }
+  }catch(e){
+    msg.textContent='网络错误，请重试';
+    console.error(e);
+  }
+}
+function afterLogin(){
+  localStorage.setItem(AUTH_KEY, curUser.username);
+  document.getElementById('authModal').style.display='none';
+  document.getElementById('authOpenBtn').style.display='none';
+  document.getElementById('userChip').style.display='flex';
+  document.getElementById('curUserName').textContent=curUser.username;
+  const b=document.getElementById('privacyBadge');
+  if(b) b.innerHTML='<span class="dot"></span><span>已登录：'+curUser.username+'</span>';
+}
+function logout(){ localStorage.removeItem(AUTH_KEY); location.reload(); }
+(function initAuth(){
+  const saved=localStorage.getItem(AUTH_KEY);
+  if(saved){
+    MIMA.readFile('data/users.json').then(d=>{
+      const users=d?d.content.users:[];
+      const u=users.find(x=>x.username===saved);
+      if(u){curUser=u;afterLogin();}
+      else localStorage.removeItem(AUTH_KEY);
+    }).catch(()=>{});
+  }
+})();
+</script>
+
 </body>
 </html>
