@@ -33,6 +33,14 @@
   const copyGenBtn = document.getElementById('copyGenBtn');
 
   let currentAttack = 'offline'; // 当前攻击模式
+  let testTimer = null;
+
+  // 使用统计上报（失败静默，不影响任何用户操作）
+  function bump(type) {
+    try {
+      if (typeof MIMA !== 'undefined' && MIMA.statBump) MIMA.statBump(type);
+    } catch (e) {}
+  }
 
   // 更新分析结果
   function update() {
@@ -87,6 +95,10 @@
       '<div class="suggest-item suggest-' + t.level + '">' + t.text + '</div>'
     ).join('');
     suggestSection.style.display = 'block';
+
+    // 使用统计：输入停顿 1.5s 视为完成一次密码测试（实时输入不逐键计数）
+    clearTimeout(testTimer);
+    testTimer = setTimeout(function () { bump('test'); }, 1500);
   }
 
   // 渲染破解时间表
@@ -158,6 +170,7 @@
     for (let i = 0; i < len; i++) pwd += pool[arr[i] % pool.length];
     genPassword.textContent = pwd;
     genResult.style.display = 'block';
+    bump('gen'); // 使用统计：生成密码 +1
   }
 
   // 复制生成结果
