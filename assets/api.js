@@ -53,9 +53,22 @@ const MIMA = {
     return JSON.parse(new TextDecoder().decode(dec));
   },
 
+  /* 请求超时：避免 GitHub API 慢/被劫持时页面无限挂起 */
+  _timeout(ms) {
+    const ctrl = new AbortController();
+    return { ctrl, timer: setTimeout(() => ctrl.abort(), ms) };
+  },
+
   async readFile(path) {
     const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}?ref=${this.branch}`;
-    const resp = await fetch(url, { headers: { Authorization: `token ${this.token}` } });
+    const { ctrl, timer } = this._timeout(10000);
+    let resp;
+    try {
+      resp = await fetch(url, { headers: { Authorization: `token ${this.token}` }, signal: ctrl.signal });
+    } catch (e) {
+      if (e.name === 'AbortError') throw new Error('读取超时，请检查网络');
+      throw e;
+    } finally { clearTimeout(timer); }
     if (resp.status === 404) return null;
     if (!resp.ok) throw new Error('读取失败 HTTP ' + resp.status);
     const data = await resp.json();
@@ -73,11 +86,19 @@ const MIMA = {
       branch: this.branch
     };
     if (sha) body.sha = sha;
-    const resp = await fetch(url, {
-      method: 'PUT',
-      headers: { Authorization: `token ${this.token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+    const { ctrl, timer } = this._timeout(12000);
+    let resp;
+    try {
+      resp = await fetch(url, {
+        method: 'PUT',
+        headers: { Authorization: `token ${this.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: ctrl.signal
+      });
+    } catch (e) {
+      if (e.name === 'AbortError') throw new Error('写入超时，请检查网络');
+      throw e;
+    } finally { clearTimeout(timer); }
     if (!resp.ok) throw new Error('写入失败 HTTP ' + resp.status);
     const data = await resp.json();
     return data.content.sha;
