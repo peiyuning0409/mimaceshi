@@ -215,11 +215,11 @@
 </footer>
 
 <script src="assets/api.js"></script>
-<script src="js/common-passwords.js"></script>
-<script src="js/analyzer.js"></script>
-<script src="js/cracktime.js"></script>
-<script src="js/suggestions.js"></script>
-<script src="js/app.js"></script>
+<script src="js/analyzer.js" defer></script>
+<script src="js/cracktime.js" defer></script>
+<script src="js/suggestions.js" defer></script>
+<script src="js/common-passwords.js" async></script>
+<script src="js/app.js" defer></script>
 
 <script>
 /* ===== 登录 / 注册（账号加密存储，测试功能仍完全本地） ===== */
@@ -298,6 +298,7 @@ async function doAuth(){
 }
 function afterLogin(){
   localStorage.setItem(AUTH_KEY, curUser.username);
+  try{ localStorage.setItem('mima_cache_user', JSON.stringify(curUser)); }catch(e){}
   document.getElementById('authModal').style.display='none';
   document.getElementById('authOpenBtn').style.display='none';
   document.getElementById('userChip').style.display='flex';
@@ -306,16 +307,28 @@ function afterLogin(){
   if(b) b.innerHTML='<span class="dot"></span><span>已登录：'+curUser.username+'</span>';
   unlockApp();
 }
-function logout(){ localStorage.removeItem(AUTH_KEY); location.reload(); }
+function logout(){ localStorage.removeItem(AUTH_KEY); localStorage.removeItem('mima_cache_user'); location.reload(); }
 (function initAuth(){
   const saved=localStorage.getItem(AUTH_KEY);
   if(saved){
+    /* 秒开：优先用本地缓存直接解锁，不等 GitHub API（慢/被劫持时避免卡死） */
+    let cached=null;
+    try{ cached=JSON.parse(localStorage.getItem('mima_cache_user')||'null'); }catch(e){}
+    if(cached && cached.username===saved){ curUser=cached; afterLogin(); }
+    else{ lockApp(); openAuth(); }
+    /* 后台异步校验账号仍有效；失败静默不回锁，仅当账号被删除时才登出 */
     MIMA.readFile('data/users.json').then(d=>{
       const users=d?d.content.users:[];
       const u=users.find(x=>x.username===saved);
-      if(u){curUser=u;afterLogin();}
-      else{ localStorage.removeItem(AUTH_KEY); lockApp(); openAuth(); }
-    }).catch(()=>{ lockApp(); openAuth(); });
+      if(u){
+        curUser=u;
+        try{ localStorage.setItem('mima_cache_user', JSON.stringify(u)); }catch(e){}
+        if(!document.getElementById('userChip') || document.getElementById('userChip').style.display!=='flex'){ afterLogin(); }
+      }else{
+        localStorage.removeItem(AUTH_KEY); localStorage.removeItem('mima_cache_user');
+        lockApp(); openAuth();
+      }
+    }).catch(()=>{});
   }else{
     lockApp(); openAuth();
   }
