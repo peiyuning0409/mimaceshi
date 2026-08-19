@@ -125,5 +125,26 @@ const MIMA = {
         }
       }
     });
+  },
+
+  /* 使用统计：生成密码 / 测试密码 各 +1，写入 data/stats.json（加密）；失败静默，不影响用户操作 */
+  async statBump(type) {
+    try {
+      await this.updateFile('data/stats.json', d => {
+        const s = { generates: 0, tests: 0, daily: {} };
+        if (d && typeof d === 'object') {
+          s.generates = d.generates || 0;
+          s.tests = d.tests || 0;
+          s.daily = d.daily || {};
+        }
+        if (type === 'gen') s.generates++;
+        else s.tests++;
+        const today = new Date().toISOString().slice(0, 10);
+        s.daily[today] = s.daily[today] || { gen: 0, test: 0 };
+        if (type === 'gen') s.daily[today].gen++;
+        else s.daily[today].test++;
+        return s;
+      });
+    } catch (e) { /* 静默 */ }
   }
 };
